@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const supabase = require('../db/supabase');
 
-router.get('/', async (req, res) => {
+router.get('/getall', async (req, res) => {
   try {
     const { data, error } = await supabase.from('tasks').select('*');
     if (error) throw error;
@@ -12,7 +12,7 @@ router.get('/', async (req, res) => {
   }
 });
 
-router.post('/', async (req, res) => {
+router.post('/create', async (req, res) => {
   try {
     const { text } = req.body;
     const { data, error } = await supabase

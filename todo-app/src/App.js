@@ -10,7 +10,7 @@ function App() {
 
   useEffect(() => {
     async function fetchTasks() {
-      const res = await fetch('http://localhost:3001/tasks');
+      const res = await fetch('http://localhost:3001/tasks/getall');
       const data = await res.json();
       setTasks(data);
     }
@@ -22,7 +22,7 @@ function App() {
     console.log('addTask called with:', taskText);
     
     try {
-      const res = await fetch('http://localhost:3001/tasks', {
+      const res = await fetch('http://localhost:3001/tasks/create', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
