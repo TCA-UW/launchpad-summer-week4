@@ -30,16 +30,9 @@ function App() {
         body: JSON.stringify({ text: taskText }),
       });
       
-      console.log('Response status:', res.status);
-      console.log('Response headers:', res.headers);
-      
-      // Get the response as text first to see what we're actually getting
       const responseText = await res.text();
-      console.log('Raw response:', responseText);
       
-      // Try to parse as JSON
       const newTask = JSON.parse(responseText);
-      console.log('Parsed task:', newTask);
       
       setTasks([...tasks, newTask]);
     } catch (error) {
@@ -47,17 +40,35 @@ function App() {
     }
   };
 
-  const toggleTask = (taskId) => {
-    setTasks(tasks.map(task => 
-      task.id === taskId 
-        ? { ...task, completed: !task.completed }
-        : task
-    ));
+  const toggleTask = async (taskId) => {
+    try {
+      const task = tasks.find(t => t.id === taskId);
+      const res = await fetch(`http://localhost:3001/tasks/update/${taskId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ completed: !task.completed }),
+      });
+      
+      const updatedTask = await res.json();
+      setTasks(tasks.map(t => t.id === taskId ? updatedTask : t));
+    } catch (error) {
+      console.error('Error updating task:', error);
+    }
   };
 
-  const deleteTask = (taskId) => {
+  const deleteTask = async (taskId) => {
     if (window.confirm('Are you sure you want to delete this task?')) {
-      setTasks(tasks.filter(task => task.id !== taskId));
+      try {
+        await fetch(`http://localhost:3001/tasks/delete/${taskId}`, {
+          method: 'DELETE',
+        });
+        
+        setTasks(tasks.filter(task => task.id !== taskId));
+      } catch (error) {
+        console.error('Error deleting task:', error);
+      }
     }
   };
 
