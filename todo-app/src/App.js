@@ -1,17 +1,22 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import AddTaskForm from './AddTaskForm';
 import TaskList from './TaskList';
 import TaskFilter from './TaskFilter';
 import './App.css';
 
 function App() {
-  const [tasks, setTasks] = useState([
-    { id: 1, text: "Learn React", completed: false },
-    { id: 2, text: "Build a todo app", completed: true },
-    { id: 3, text: "Practice JavaScript", completed: false }
-  ]);
-
+  const [tasks, setTasks] = useState([]);
   const [filter, setFilter] = useState('all');
+
+  useEffect(() => {
+    async function fetchTasks() {
+      const res = await fetch('http://localhost:3001/tasks');
+      const data = await res.json();
+      setTasks(data);
+    }
+
+    fetchTasks();
+  }, []);
 
   const addTask = (newTask) => {
     setTasks([...tasks, newTask]);
