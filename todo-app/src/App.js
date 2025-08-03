@@ -2,12 +2,38 @@ import React, { useState, useEffect } from 'react';
 import AddTaskForm from './AddTaskForm';
 import TaskList from './TaskList';
 import TaskFilter from './TaskFilter';
+import ThemeToggle from './ThemeToggle';
 import './App.css';
 
 function App() {
   const [tasks, setTasks] = useState([]);
   const [filter, setFilter] = useState('all');
+  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [user, setUser] = useState(null);
+  const [themeLoading, setThemeLoading] = useState(false);
+  
+  // For now, we're using a hardcoded username - later this will come from login
+  const currentUsername = 'user1';
 
+  // Fetch user data and apply theme on component mount
+  useEffect(() => {
+    async function fetchUserData() {
+      try {
+        const res = await fetch(`http://localhost:3001/users/${currentUsername}`);
+        const userData = await res.json();
+        setUser(userData);
+        setIsDarkMode(userData.dark_mode);
+      } catch (error) {
+        console.error('Error fetching user data:', error);
+        // Fallback to light mode if there's an error
+        setIsDarkMode(false);
+      }
+    }
+
+    fetchUserData();
+  }, [currentUsername]);
+
+  // Fetch tasks
   useEffect(() => {
     async function fetchTasks() {
       const res = await fetch('http://localhost:3001/tasks/getall');
@@ -17,6 +43,47 @@ function App() {
 
     fetchTasks();
   }, []);
+
+  // Apply theme to body whenever isDarkMode changes
+  useEffect(() => {
+    if (isDarkMode) {
+      document.body.classList.add('dark-mode');
+      document.body.classList.remove('light-mode');
+    } else {
+      document.body.classList.add('light-mode');
+      document.body.classList.remove('dark-mode');
+    }
+  }, [isDarkMode]);
+
+  const toggleTheme = async () => {
+    if (!user) return;
+    
+    setThemeLoading(true);
+    const newThemeValue = !isDarkMode;
+    
+    try {
+      // Update the database
+      const res = await fetch(`http://localhost:3001/users/theme/${currentUsername}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ dark_mode: newThemeValue }),
+      });
+      
+      const updatedUser = await res.json();
+      
+      // Update local state
+      setUser(updatedUser);
+      setIsDarkMode(updatedUser.dark_mode);
+      
+      console.log(`Theme updated to: ${updatedUser.dark_mode ? 'Dark' : 'Light'} Mode`);
+    } catch (error) {
+      console.error('Error updating theme:', error);
+    } finally {
+      setThemeLoading(false);
+    }
+  };
 
   const addTask = async (taskText) => {
     console.log('addTask called with:', taskText);
@@ -31,9 +98,7 @@ function App() {
       });
       
       const responseText = await res.text();
-      
       const newTask = JSON.parse(responseText);
-      
       setTasks([...tasks, newTask]);
     } catch (error) {
       console.error('Error adding task:', error);
@@ -88,7 +153,6 @@ function App() {
   };
 
   const filteredTasks = getFilteredTasks();
-
   const totalTasks = tasks.length;
   const completedTasks = tasks.filter(task => task.completed).length;
   const remainingTasks = tasks.filter(task => !task.completed).length;
@@ -96,7 +160,17 @@ function App() {
   return (
     <div className="App">
       <div className="App-header">
-        <h1>My To-Do List</h1>
+        <div className="header-content">
+          <div className="header-left">
+            <h1>My To-Do List</h1>
+           
+          </div>
+          <ThemeToggle 
+            isDarkMode={isDarkMode} 
+            onToggle={toggleTheme}
+            isLoading={themeLoading}
+          />
+        </div>
       </div>
       <div className="todo-container">
         <AddTaskForm onAddTask={addTask} />
