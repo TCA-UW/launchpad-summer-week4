@@ -18,8 +18,33 @@ function App() {
     fetchTasks();
   }, []);
 
-  const addTask = (newTask) => {
-    setTasks([...tasks, newTask]);
+  const addTask = async (taskText) => {
+    console.log('addTask called with:', taskText);
+    
+    try {
+      const res = await fetch('http://localhost:3001/tasks', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ text: taskText }),
+      });
+      
+      console.log('Response status:', res.status);
+      console.log('Response headers:', res.headers);
+      
+      // Get the response as text first to see what we're actually getting
+      const responseText = await res.text();
+      console.log('Raw response:', responseText);
+      
+      // Try to parse as JSON
+      const newTask = JSON.parse(responseText);
+      console.log('Parsed task:', newTask);
+      
+      setTasks([...tasks, newTask]);
+    } catch (error) {
+      console.error('Error adding task:', error);
+    }
   };
 
   const toggleTask = (taskId) => {

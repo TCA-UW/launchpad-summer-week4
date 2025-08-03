@@ -7,19 +7,11 @@ function AddTaskForm({ onAddTask }) {
     e.preventDefault();
     
     if (task.trim()) {
-      
-      const newTask = {
-        id: Date.now(),
-        text: task.trim(),
-        completed: false
-      };
-      
-      onAddTask(newTask);
-      
-      setTask('');
+      onAddTask(task.trim());
+      setTask(task);
     }
   };
-
+  
   return (
     <div className="add-task-form">
       <div className="form-group">

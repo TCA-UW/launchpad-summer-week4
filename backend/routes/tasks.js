@@ -12,4 +12,19 @@ router.get('/', async (req, res) => {
   }
 });
 
+router.post('/', async (req, res) => {
+  try {
+    const { text } = req.body;
+    const { data, error } = await supabase
+      .from('tasks')
+      .insert([{ text, completed: false }])
+      .select();
+    
+    if (error) throw error;
+    res.status(201).json(data[0]);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 module.exports = router;
